@@ -1,0 +1,36 @@
+@font-face {
+  font-family: "Gotham";
+  src: url("../fonts/GothamMedium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+* {
+  font-family: "Gotham";
+}
+body {
+  width: 180px;
+  padding: 12px;
+  text-align: center;
+}
+
+#captureBtn {
+  width: 100%;
+  padding: 15px;
+  font-size: 16px;
+  background: #01bbc9;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+}
+
+#captureBtn:hover {
+  background: #00d4ab;
+}
+
+#status {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #666;
+}
