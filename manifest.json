@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "name": "Quick Page Snap",
     "version": "1.0",
-    "description": "Quick Page Snap is a lightweight and powerful browser extension that lets you capture, edit, and download web page screenshots with ease.",
+    "description": "A powerful browser extension that lets you capture, edit, and download web page screenshots with ease.",
     "permissions": [
         "activeTab",
         "downloads"
