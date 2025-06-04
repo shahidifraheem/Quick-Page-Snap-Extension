@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Create and trigger download link
         const link = document.createElement('a');
-        link.download = `edited_screenshot_${new Date().getTime()}.png`;
+        link.download = `screenshot_${new Date().getTime()}.png`;
         link.href = finalCanvas.toDataURL('image/png');
         link.click();
     });

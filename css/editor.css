@@ -5,13 +5,15 @@
   font-style: normal;
   font-display: swap;
 }
-*{
-    font-family: "Gotham";
+* {
+  margin: 0;
+  box-sizing: border-box;
+  font-family: "Gotham";
 }
 body {
-  margin: 0;
   padding: 20px;
-  background-color: #f5f5f5;
+  background-color: rgba(0,212,171,1);
+  background: linear-gradient(90deg,rgba(0,212,171,1) 5%,rgba(1,187,201,1) 100%);
 }
 
 .toolbar {
@@ -19,14 +21,27 @@ body {
   align-items: center;
   gap: 10px;
   margin-bottom: 15px;
-  padding: 10px;
+  padding: 10px 20px;
   background: white;
-  border-radius: 5px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  border-radius: 99px;
+  box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.1);
+}
+
+#logo {
+  margin-right: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+#logo h1 {
+  font-size: 35px;
+  text-transform: uppercase;
+  color: #00d4ab;
 }
 
 button {
-  padding: 8px 12px;
+  padding: 12px 20px;
+  font-size: 14px;
   background: #01bbc9;
   color: white;
   border: none;
@@ -43,9 +58,11 @@ button.active {
   box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
 }
 
+#resetBtn {
+  background-color: rgb(214, 16, 16);
+}
 .canvas-container {
   position: relative;
-  display: inline-block;
   margin: 0 auto;
   max-width: 90%;
   border: 1px solid #ddd;
@@ -56,6 +73,7 @@ button.active {
 #canvas {
   display: block;
   max-width: 100%;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
 }
 
 .highlight {
@@ -70,15 +88,4 @@ button.active {
   border: 2px dashed #01bbc9;
   background-color: rgba(66, 133, 244, 0.1);
   pointer-events: none;
-}
-
-#logo {
-  margin-right: auto;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-#logo h1{
-  font-size: 25px;
-  color: #00d4ab;
 }
