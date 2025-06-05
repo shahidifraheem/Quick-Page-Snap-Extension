@@ -4,8 +4,7 @@
     "version": "1.0",
     "description": "A powerful browser extension that lets you capture, edit, and download web page screenshots with ease.",
     "permissions": [
-        "activeTab",
-        "downloads"
+        "activeTab"
     ],
     "action": {
         "default_popup": "popup.html",
