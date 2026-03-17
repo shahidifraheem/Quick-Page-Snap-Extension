@@ -9,7 +9,7 @@
   font-family: "Gotham";
 }
 body {
-  width: 180px;
+  width: 200px; /* Slightly wider for new text */
   padding: 12px;
   text-align: center;
 }

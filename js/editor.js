@@ -1,27 +1,92 @@
-// Wait for the DOM to fully load before executing
 document.addEventListener('DOMContentLoaded', async () => {
     // Get screenshot data from URL parameters
     const urlParams = new URLSearchParams(window.location.search);
-    const screenshotDataUrl = urlParams.get('screenshot');
+    const storageKey = urlParams.get('key');
 
-    // Exit if no screenshot is found
-    if (!screenshotDataUrl) {
-        alert('No screenshot found');
+    // Exit if no key is found
+    if (!storageKey) {
+        alert('No screenshot key found');
         window.close();
         return;
     }
 
-    // Initialize canvas and load the screenshot image
+    // Initialize canvas and context
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
-    const img = new Image();
+    const statusEl = document.createElement('div');
+    statusEl.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0,0,0,0.8);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        z-index: 9999;
+    `;
+    statusEl.textContent = "Loading screenshot...";
+    document.body.appendChild(statusEl);
 
-    img.onload = function () {
-        canvas.width = img.width;
-        canvas.height = img.height;
-        ctx.drawImage(img, 0, 0);
-    };
-    img.src = screenshotDataUrl;
+    try {
+        // Retrieve the image from storage
+        console.log("Retrieving screenshot with key:", storageKey);
+        const result = await chrome.storage.local.get(storageKey);
+        const imageSrc = result[storageKey];
+        
+        if (!imageSrc) {
+            throw new Error("Screenshot not found in storage");
+        }
+        
+        console.log("Screenshot retrieved, length:", imageSrc.length);
+        
+        // Clean up storage (optional - you might want to keep it)
+        chrome.storage.local.remove(storageKey);
+        
+        // Load the image
+        const img = new Image();
+        
+        img.onload = function() {
+            console.log("Image loaded successfully, dimensions:", img.width, "x", img.height);
+            
+            // Set canvas dimensions
+            canvas.width = img.width;
+            canvas.height = img.height;
+            
+            // Draw image
+            ctx.drawImage(img, 0, 0);
+            
+            // Remove loading status
+            document.body.removeChild(statusEl);
+            
+            // Adjust canvas container for large images
+            const container = document.querySelector('.canvas-container');
+            if (img.width > window.innerWidth * 0.9) {
+                container.style.maxWidth = '95%';
+                canvas.style.width = '100%';
+                canvas.style.height = 'auto';
+            }
+        };
+        
+        img.onerror = function(e) {
+            console.error("Failed to load image:", e);
+            statusEl.textContent = "Failed to load screenshot";
+            statusEl.style.background = "rgba(255,0,0,0.8)";
+            setTimeout(() => {
+                document.body.removeChild(statusEl);
+            }, 3000);
+        };
+        
+        img.src = imageSrc;
+        
+    } catch (error) {
+        console.error("Error loading screenshot:", error);
+        statusEl.textContent = "Error: " + error.message;
+        statusEl.style.background = "rgba(255,0,0,0.8)";
+        setTimeout(() => {
+            document.body.removeChild(statusEl);
+        }, 3000);
+    }
 
     // Editor state management
     let isCropping = false;
@@ -114,6 +179,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Handle mouse down for crop or highlight initiation
     canvas.addEventListener('mousedown', (e) => {
+        if (!canvas.width) return; // Don't allow editing if no image loaded
+        
         const rect = canvas.getBoundingClientRect();
         const scaleX = canvas.width / rect.width;
         const scaleY = canvas.height / rect.height;
@@ -153,21 +220,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Handle mouse move for adjusting highlight or crop area
     canvas.addEventListener('mousemove', (e) => {
+        if (!canvas.width) return;
         if (!isHighlighting && !isCropping) return;
         if (startX == null || startY == null) return;
 
         const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
 
         const clientX = e.clientX - rect.left;
         const clientY = e.clientY - rect.top;
 
-        const width = clientX - (parseFloat(currentHighlight?.style.left || 0));
-        const height = clientY - (parseFloat(currentHighlight?.style.top || 0));
-
         // Adjust highlight box size and position
         if (isHighlighting && currentHighlight) {
+            const width = clientX - (parseFloat(currentHighlight.style.left || 0));
+            const height = clientY - (parseFloat(currentHighlight.style.top || 0));
+            
             currentHighlight.style.width = `${Math.abs(width)}px`;
             currentHighlight.style.height = `${Math.abs(height)}px`;
             currentHighlight.style.left = `${width < 0 ? clientX : clientX - width}px`;
@@ -176,27 +242,25 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Adjust crop selection rectangle size and position
         if (isCropping && isSelecting && selectionRect) {
-            const startClientX = e.clientX - rect.left;
-            const startClientY = e.clientY - rect.top;
-
-            const cropWidth = startClientX - parseFloat(selectionRect.style.left);
-            const cropHeight = startClientY - parseFloat(selectionRect.style.top);
+            const cropWidth = clientX - parseFloat(selectionRect.style.left);
+            const cropHeight = clientY - parseFloat(selectionRect.style.top);
 
             selectionRect.style.width = `${Math.abs(cropWidth)}px`;
             selectionRect.style.height = `${Math.abs(cropHeight)}px`;
-            selectionRect.style.left = `${cropWidth < 0 ? startClientX : startClientX - cropWidth}px`;
-            selectionRect.style.top = `${cropHeight < 0 ? startClientY : startClientY - cropHeight}px`;
+            selectionRect.style.left = `${cropWidth < 0 ? clientX : clientX - cropWidth}px`;
+            selectionRect.style.top = `${cropHeight < 0 ? clientY : clientY - cropHeight}px`;
         }
     });
 
     // Handle mouse up to apply crop or finalize highlight
     canvas.addEventListener('mouseup', (e) => {
+        if (!canvas.width) return;
         if (!(isCropping || isHighlighting) || startX == null || startY == null) return;
 
         const { x: endX, y: endY } = getCanvasCoordinates(e);
 
         // Perform cropping using selection rectangle
-        if (isCropping && isSelecting) {
+        if (isCropping && isSelecting && selectionRect) {
             const cropX = Math.min(startX, endX);
             const cropY = Math.min(startY, endY);
             const cropWidth = Math.abs(endX - startX);
@@ -216,10 +280,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             // Remove selection rectangle
-            if (selectionRect) {
-                selectionRect.remove();
-                selectionRect = null;
-            }
+            selectionRect.remove();
+            selectionRect = null;
         }
 
         // Reset interaction state
