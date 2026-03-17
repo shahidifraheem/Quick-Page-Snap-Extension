@@ -28,6 +28,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     statusEl.textContent = "Loading screenshot...";
     document.body.appendChild(statusEl);
 
+    // Store original canvas dimensions for highlight scaling
+    let originalCanvasWidth = 0;
+    let originalCanvasHeight = 0;
+
+    // Editor state management
+    let isCropping = false;
+    let isHighlighting = false;
+    let startX, startY;
+    let currentHighlight = null;
+    let selectionRect = null;
+    let isSelecting = false;
+
+    // Tool button references
+    const cropBtn = document.getElementById('cropBtn');
+    const highlightBtn = document.getElementById('highlightBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+
+    canvas.style.cursor = 'default';
+
     try {
         // Retrieve the image from storage
         console.log("Retrieving screenshot with key:", storageKey);
@@ -40,7 +59,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         console.log("Screenshot retrieved, length:", imageSrc.length);
         
-        // Clean up storage (optional - you might want to keep it)
+        // Clean up storage
         chrome.storage.local.remove(storageKey);
         
         // Load the image
@@ -48,6 +67,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         img.onload = function() {
             console.log("Image loaded successfully, dimensions:", img.width, "x", img.height);
+            
+            // Set original dimensions
+            originalCanvasWidth = img.width;
+            originalCanvasHeight = img.height;
             
             // Set canvas dimensions
             canvas.width = img.width;
@@ -88,22 +111,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }, 3000);
     }
 
-    // Editor state management
-    let isCropping = false;
-    let isHighlighting = false;
-    let startX, startY;
-    let currentHighlight = null;
-    let selectionRect = null;
-    let isSelecting = false;
-
-    // Tool button references
-    const cropBtn = document.getElementById('cropBtn');
-    const highlightBtn = document.getElementById('highlightBtn');
-    const resetBtn = document.getElementById('resetBtn');
-    const downloadBtn = document.getElementById('downloadBtn');
-
-    canvas.style.cursor = 'default';
-
     // Activate crop mode
     cropBtn.addEventListener('click', () => {
         isCropping = true;
@@ -122,39 +129,71 @@ document.addEventListener('DOMContentLoaded', async () => {
         cropBtn.classList.remove('active');
     });
 
-    // Reload the page to reset the canvas and tools
-    resetBtn.addEventListener("click", function () {
-        window.location.reload();
-    });
-
     // Download the modified canvas including highlights
     downloadBtn.addEventListener('click', () => {
+        // Create a new canvas for the final image
         const finalCanvas = document.createElement('canvas');
         finalCanvas.width = canvas.width;
         finalCanvas.height = canvas.height;
         const finalCtx = finalCanvas.getContext('2d');
 
-        // Copy base image to final canvas
+        // Copy the current canvas (which may be cropped) to the final canvas
         finalCtx.drawImage(canvas, 0, 0);
 
-        // Overlay highlight rectangles
+        // Get all highlight elements
         const highlights = document.querySelectorAll('.highlight');
+        
+        // Get the container and canvas positions
+        const container = canvas.parentElement;
+        const containerRect = container.getBoundingClientRect();
+        const canvasRect = canvas.getBoundingClientRect();
+        
+        // Calculate the offset between container and canvas
+        const offsetLeft = canvasRect.left - containerRect.left;
+        const offsetTop = canvasRect.top - containerRect.top;
+        
+        // Calculate scale factors if the canvas display size differs from actual size
+        const displayWidth = canvasRect.width;
+        const displayHeight = canvasRect.height;
+        const actualWidth = canvas.width;
+        const actualHeight = canvas.height;
+        
+        const scaleX = actualWidth / displayWidth;
+        const scaleY = actualHeight / displayHeight;
+
+        // Draw each highlight on the final canvas
         highlights.forEach(highlight => {
-            const rect = canvas.getBoundingClientRect();
-            const container = canvas.parentElement.getBoundingClientRect();
-
-            const left = parseFloat(highlight.style.left) - (container.left - rect.left);
-            const top = parseFloat(highlight.style.top) - (container.top - rect.top);
-            const width = parseFloat(highlight.style.width);
-            const height = parseFloat(highlight.style.height);
-
-            finalCtx.fillStyle = '#ffff001a';
-            finalCtx.fillRect(left, top, width, height);
-
-            finalCtx.strokeStyle = 'red';
-            finalCtx.setLineDash([5, 3]);
-            finalCtx.lineWidth = 2;
-            finalCtx.strokeRect(left, top, width, height);
+            // Get highlight position relative to container
+            const highlightLeft = parseFloat(highlight.style.left) || 0;
+            const highlightTop = parseFloat(highlight.style.top) || 0;
+            const highlightWidth = parseFloat(highlight.style.width) || 0;
+            const highlightHeight = parseFloat(highlight.style.height) || 0;
+            
+            // Adjust for container offset to get position relative to canvas
+            const canvasRelativeLeft = highlightLeft - offsetLeft;
+            const canvasRelativeTop = highlightTop - offsetTop;
+            
+            // Scale to actual canvas coordinates
+            const actualLeft = canvasRelativeLeft * scaleX;
+            const actualTop = canvasRelativeTop * scaleY;
+            const actualWidth = highlightWidth * scaleX;
+            const actualHeight = highlightHeight * scaleY;
+            
+            // Ensure we're within canvas bounds
+            if (actualLeft >= 0 && actualTop >= 0 && 
+                actualLeft + actualWidth <= canvas.width && 
+                actualTop + actualHeight <= canvas.height) {
+                
+                // Draw highlight fill
+                finalCtx.fillStyle = '#ffff001a';
+                finalCtx.fillRect(actualLeft, actualTop, actualWidth, actualHeight);
+                
+                // Draw highlight border
+                finalCtx.strokeStyle = 'red';
+                finalCtx.setLineDash([5, 3]);
+                finalCtx.lineWidth = 2;
+                finalCtx.strokeRect(actualLeft, actualTop, actualWidth, actualHeight);
+            }
         });
 
         // Trigger download of final image
@@ -259,6 +298,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const { x: endX, y: endY } = getCanvasCoordinates(e);
 
+        // Finalize highlight
+        if (isHighlighting && currentHighlight) {
+            // Highlight is already drawn on screen, just reset
+            currentHighlight = null;
+        }
+
         // Perform cropping using selection rectangle
         if (isCropping && isSelecting && selectionRect) {
             const cropX = Math.min(startX, endX);
@@ -267,6 +312,21 @@ document.addEventListener('DOMContentLoaded', async () => {
             const cropHeight = Math.abs(endY - startY);
 
             if (cropWidth > 10 && cropHeight > 10) {
+                // Store current highlights before cropping
+                const highlights = Array.from(document.querySelectorAll('.highlight')).map(h => {
+                    const rect = canvas.getBoundingClientRect();
+                    const container = canvas.parentElement.getBoundingClientRect();
+                    
+                    return {
+                        element: h,
+                        left: parseFloat(h.style.left) - (container.left - rect.left),
+                        top: parseFloat(h.style.top) - (container.top - rect.top),
+                        width: parseFloat(h.style.width),
+                        height: parseFloat(h.style.height)
+                    };
+                });
+
+                // Perform crop
                 const tempCanvas = document.createElement('canvas');
                 tempCanvas.width = cropWidth;
                 tempCanvas.height = cropHeight;
@@ -277,6 +337,39 @@ document.addEventListener('DOMContentLoaded', async () => {
                 canvas.width = cropWidth;
                 canvas.height = cropHeight;
                 ctx.drawImage(tempCanvas, 0, 0);
+
+                // Remove old highlights
+                document.querySelectorAll('.highlight').forEach(h => h.remove());
+
+                // Redraw highlights that are within the cropped area
+                highlights.forEach(h => {
+                    // Check if highlight is within crop area
+                    if (h.left >= cropX && h.top >= cropY && 
+                        h.left + h.width <= cropX + cropWidth && 
+                        h.top + h.height <= cropY + cropHeight) {
+                        
+                        // Create new highlight with adjusted coordinates
+                        const newHighlight = document.createElement('div');
+                        newHighlight.className = 'highlight';
+                        newHighlight.style.position = 'absolute';
+                        
+                        // Adjust coordinates relative to new canvas
+                        const rect = canvas.getBoundingClientRect();
+                        const container = canvas.parentElement.getBoundingClientRect();
+                        
+                        const newLeft = (h.left - cropX) * (rect.width / canvas.width);
+                        const newTop = (h.top - cropY) * (rect.height / canvas.height);
+                        const newWidth = h.width * (rect.width / canvas.width);
+                        const newHeight = h.height * (rect.height / canvas.height);
+                        
+                        newHighlight.style.left = `${newLeft + (rect.left - container.left)}px`;
+                        newHighlight.style.top = `${newTop + (rect.top - container.top)}px`;
+                        newHighlight.style.width = `${newWidth}px`;
+                        newHighlight.style.height = `${newHeight}px`;
+                        
+                        canvas.parentNode.appendChild(newHighlight);
+                    }
+                });
             }
 
             // Remove selection rectangle
@@ -287,6 +380,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Reset interaction state
         isCropping = false;
         isSelecting = false;
+        isHighlighting = false;
         startX = startY = null;
+        currentHighlight = null;
+        
+        // Reset button states
+        cropBtn.classList.remove('active');
+        highlightBtn.classList.remove('active');
+        canvas.style.cursor = 'default';
     });
 });

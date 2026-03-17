@@ -7,33 +7,79 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Arial, sans-serif;
             margin: 40px;
-            background-color: #f9f9f9;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             color: #333;
             line-height: 1.6;
         }
 
         h1 {
-            color: #028cb0;
+            color: #01bbc9;
+            border-bottom: 2px solid #00d4ab;
+            padding-bottom: 10px;
         }
 
         h2 {
             margin-top: 30px;
-            color: #23282d;
+            color: #028cb0;
+            border-left: 4px solid #00d4ab;
+            padding-left: 15px;
         }
 
         p {
             margin-bottom: 15px;
         }
 
+        ul {
+            margin-bottom: 20px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: auto;
             background: white;
-            padding: 30px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border-radius: 15px;
+        }
+
+        .highlight {
+            background-color: #f0f9ff;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #01bbc9;
+            margin: 20px 0;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #00d4ab;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+
+        .version {
+            color: #666;
+            font-size: 14px;
+            margin-top: -10px;
+            margin-bottom: 30px;
+        }
+
+        footer {
+            margin-top: 40px;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
         }
     </style>
 </head>
@@ -41,42 +87,142 @@
 <body>
     <div class="container">
         <h1>Privacy Policy</h1>
-        <p><strong>Effective Date:</strong> 06/04/2025</p>
+        <div class="version">Version 2.0 | Last Updated: March 2025</div>
+        
+        <p><strong>Effective Date:</strong> 17/03/2025</p>
 
-        <p>Thank you for using <strong>Quick Page Snap</strong>. Your privacy is important to us. This Privacy Policy
-            explains how we handle and protect your information when you use our browser extension.</p>
+        <p>Thank you for using <strong>Quick Page Snap</strong>. Your privacy is our top priority. This Privacy Policy
+            explains how we handle your information when you use our browser extension for capturing full-page screenshots.</p>
+
+        <div class="highlight">
+            <span class="badge">100% Local</span>
+            <span class="badge">No Tracking</span>
+            <span class="badge">Open Source</span>
+            <p><strong>Quick Summary:</strong> All screenshot processing happens locally on your device. We never see, store, or have access to your screenshots or browsing data.</p>
+        </div>
 
         <h2>1. Information We Collect</h2>
-        <p>Quick Page Snap <strong>does not collect, store, or transmit any personal information or browsing
-                data</strong>.</p>
+        <p><strong>Quick Page Snap does NOT collect, store, or transmit any personal information or browsing data.</strong> The extension operates entirely locally:</p>
         <ul>
-            <li>We do <strong>not track</strong> your activity.</li>
-            <li>We do <strong>not store</strong> screenshots or image content on any external servers.</li>
-            <li>All screenshots and editing happen <strong>locally</strong> in your browser.</li>
+            <li>✅ <strong>No personal data collection</strong> - We don't collect names, emails, or any personal identifiers</li>
+            <li>✅ <strong>No browsing history</strong> - We don't track your browsing activity or visited websites</li>
+            <li>✅ <strong>No screenshot uploads</strong> - All screenshots stay on your device</li>
+            <li>✅ <strong>No analytics</strong> - We don't use any tracking or analytics tools</li>
+            <li>✅ <strong>No cookies</strong> - The extension doesn't use cookies</li>
         </ul>
 
         <h2>2. Permissions Explained</h2>
-        <p>This extension uses the following Chrome permissions:</p>
+        <p>This extension requires the following Chrome permissions to function:</p>
         <ul>
-            <li><strong>activeTab</strong>: To capture the visible content of the current tab.</li>
+            <li><strong>activeTab</strong>: 
+                <ul>
+                    <li>Used to capture the visible content of your current tab</li>
+                    <li>Only activated when you click the "Capture Now" button</li>
+                    <li>No background or automatic capturing</li>
+                </ul>
+            </li>
+            <li><strong>scripting</strong>:
+                <ul>
+                    <li>Enables full-page scrolling and capture functionality</li>
+                    <li>Only runs when you initiate a screenshot</li>
+                </ul>
+            </li>
+            <li><strong>storage</strong>:
+                <ul>
+                    <li>Temporarily stores your screenshot locally before editing</li>
+                    <li>Data is automatically deleted after the editor tab is closed</li>
+                    <li>Never synced or uploaded to any server</li>
+                </ul>
+            </li>
+            <li><strong>host_permissions (&lt;all_urls&gt;)</strong>:
+                <ul>
+                    <li>Required to capture full-page screenshots on any website</li>
+                    <li>Only active when you explicitly click the capture button</li>
+                    <li>No automatic or background access to any website</li>
+                </ul>
+            </li>
         </ul>
-        <p>These permissions are used only to enable core functionality. No data is shared or sent externally.</p>
 
-        <h2>3. Data Storage</h2>
-        <p>All processing and editing are done in your browser. <strong>No data is uploaded or stored remotely</strong>.
+        <h2>3. How Your Data is Handled</h2>
+        <h3>Screenshots:</h3>
+        <ul>
+            <li><strong>Capture Process:</strong> When you take a screenshot, the extension captures multiple images as you scroll</li>
+            <li><strong>Temporary Storage:</strong> These images are stitched together locally in your browser's memory</li>
+            <li><strong>Local Storage:</strong> The final screenshot is temporarily stored in Chrome's local storage (not synced) to transfer it to the editor</li>
+            <li><strong>Automatic Deletion:</strong> The temporary storage is cleared immediately after the editor loads</li>
+            <li><strong>Download:</strong> When you click download, the image is saved directly to your computer</li>
+            <li><strong>No Cloud Storage:</strong> Screenshots are never uploaded to any cloud service or external server</li>
+        </ul>
+
+        <h3>Editing Features:</h3>
+        <ul>
+            <li><strong>Crop & Highlight:</strong> All editing happens locally in your browser</li>
+            <li><strong>No Image Processing:</strong> We don't process or analyze your images in any way</li>
+            <li><strong>Original Quality:</strong> Your screenshots maintain their original quality and content</li>
+        </ul>
+
+        <h2>4. Data Retention</h2>
+        <ul>
+            <li><strong>Temporary storage:</strong> Screenshots in local storage are deleted when you close the editor tab</li>
+            <li><strong>Downloads:</strong> Downloaded images are saved to your computer and managed by you</li>
+            <li><strong>No permanent storage:</strong> We don't maintain any databases or permanent storage</li>
+        </ul>
+
+        <h2>5. Third-Party Services</h2>
+        <p><strong>Quick Page Snap does NOT use any third-party services, trackers, or analytics.</strong> This means:</p>
+        <ul>
+            <li>No Google Analytics</li>
+            <li>No advertising networks</li>
+            <li>No error tracking services</li>
+            <li>No external APIs (except Chrome's native APIs)</li>
+            <li>No content delivery networks (CDNs) that might track you</li>
+        </ul>
+
+        <h2>6. Children's Privacy</h2>
+        <p>Our extension does not collect any personal information from anyone, including children under 13. All processing is local and no data is transmitted.</p>
+
+        <h2>7. Security</h2>
+        <p>Since all processing happens locally on your device and no data is transmitted:</p>
+        <ul>
+            <li>Your screenshots never leave your computer</li>
+            <li>No data can be intercepted during transmission (because there is no transmission)</li>
+            <li>No accounts or passwords are required</li>
+            <li>You maintain complete control over your screenshots</li>
+        </ul>
+
+        <h2>8. Changes to This Policy</h2>
+        <p>If this Privacy Policy is updated, the new version will be:</p>
+        <ul>
+            <li>Posted on the Chrome Web Store listing</li>
+            <li>Included in the extension update</li>
+            <li>Clearly marked with a new version number and date</li>
+        </ul>
+        <p>Continued use of the extension after changes constitutes acceptance of the updated policy.</p>
+
+        <h2>9. Your Rights and Choices</h2>
+        <p>You have complete control over your data:</p>
+        <ul>
+            <li><strong>Choose when to capture:</strong> Screenshots only happen when you click the button</li>
+            <li><strong>Choose what to capture:</strong> You decide which pages to screenshot</li>
+            <li><strong>Choose where to save:</strong> You control where downloaded images are stored</li>
+            <li><strong>Delete anytime:</strong> You can delete any downloaded screenshots from your computer</li>
+        </ul>
+
+        <h2>10. Contact Information</h2>
+        <p>If you have any questions, concerns, or feedback about this Privacy Policy or the extension:</p>
+        <p>
+            <strong>Email:</strong> info@shahidifraheem.com<br>
+            <strong>Extension:</strong> Quick Page Snap<br>
+            <strong>Response Time:</strong> Within 24 hours
         </p>
 
-        <h2>4. Third-Party Services</h2>
-        <p>Quick Page Snap <strong>does not use any third-party services, trackers, or analytics</strong>.</p>
+        <div class="highlight">
+            <p><strong>🔒 Privacy Promise:</strong> We built Quick Page Snap to be simple, useful, and private. We don't collect data because we believe your screenshots are your private property. The extension will always remain free, open about its permissions, and respectful of your privacy.</p>
+        </div>
 
-        <h2>5. Changes to This Policy</h2>
-        <p>This Privacy Policy may be updated. Any changes will be reflected on the Chrome Web Store or shared via
-            extension updates.</p>
-
-        <h2>6. Contact</h2>
-        <p>If you have questions or concerns, please contact us at:<br>
-            <strong>shahidifraheem0256@gmail.com</strong>
-        </p>
+        <footer>
+            <p>© 2026 Quick Page Snap. All rights reserved.</p>
+        </footer>
     </div>
 </body>
 

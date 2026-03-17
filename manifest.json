@@ -1,6 +1,6 @@
 {
     "manifest_version": 3,
-    "name": "Quick Page Snap",
+    "name": "Quick Page Snap - Take Full Page Screenshot",
     "version": "2.0",
     "description": "A powerful browser extension that lets you capture, edit, and download FULL PAGE web page screenshots with ease.",
     "permissions": [
