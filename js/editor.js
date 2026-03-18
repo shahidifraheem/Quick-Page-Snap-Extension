@@ -52,36 +52,36 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.log("Retrieving screenshot with key:", storageKey);
         const result = await chrome.storage.local.get(storageKey);
         const imageSrc = result[storageKey];
-        
+
         if (!imageSrc) {
             throw new Error("Screenshot not found in storage");
         }
-        
+
         console.log("Screenshot retrieved, length:", imageSrc.length);
-        
+
         // Clean up storage
         chrome.storage.local.remove(storageKey);
-        
+
         // Load the image
         const img = new Image();
-        
-        img.onload = function() {
+
+        img.onload = function () {
             console.log("Image loaded successfully, dimensions:", img.width, "x", img.height);
-            
+
             // Set original dimensions
             originalCanvasWidth = img.width;
             originalCanvasHeight = img.height;
-            
+
             // Set canvas dimensions
             canvas.width = img.width;
             canvas.height = img.height;
-            
+
             // Draw image
             ctx.drawImage(img, 0, 0);
-            
+
             // Remove loading status
             document.body.removeChild(statusEl);
-            
+
             // Adjust canvas container for large images
             const container = document.querySelector('.canvas-container');
             if (img.width > window.innerWidth * 0.9) {
@@ -90,8 +90,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 canvas.style.height = 'auto';
             }
         };
-        
-        img.onerror = function(e) {
+
+        img.onerror = function (e) {
             console.error("Failed to load image:", e);
             statusEl.textContent = "Failed to load screenshot";
             statusEl.style.background = "rgba(255,0,0,0.8)";
@@ -99,9 +99,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 document.body.removeChild(statusEl);
             }, 3000);
         };
-        
+
         img.src = imageSrc;
-        
+
     } catch (error) {
         console.error("Error loading screenshot:", error);
         statusEl.textContent = "Error: " + error.message;
@@ -142,22 +142,22 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Get all highlight elements
         const highlights = document.querySelectorAll('.highlight');
-        
+
         // Get the container and canvas positions
         const container = canvas.parentElement;
         const containerRect = container.getBoundingClientRect();
         const canvasRect = canvas.getBoundingClientRect();
-        
+
         // Calculate the offset between container and canvas
         const offsetLeft = canvasRect.left - containerRect.left;
         const offsetTop = canvasRect.top - containerRect.top;
-        
+
         // Calculate scale factors if the canvas display size differs from actual size
         const displayWidth = canvasRect.width;
         const displayHeight = canvasRect.height;
         const actualWidth = canvas.width;
         const actualHeight = canvas.height;
-        
+
         const scaleX = actualWidth / displayWidth;
         const scaleY = actualHeight / displayHeight;
 
@@ -168,26 +168,26 @@ document.addEventListener('DOMContentLoaded', async () => {
             const highlightTop = parseFloat(highlight.style.top) || 0;
             const highlightWidth = parseFloat(highlight.style.width) || 0;
             const highlightHeight = parseFloat(highlight.style.height) || 0;
-            
+
             // Adjust for container offset to get position relative to canvas
             const canvasRelativeLeft = highlightLeft - offsetLeft;
             const canvasRelativeTop = highlightTop - offsetTop;
-            
+
             // Scale to actual canvas coordinates
             const actualLeft = canvasRelativeLeft * scaleX;
             const actualTop = canvasRelativeTop * scaleY;
             const actualWidth = highlightWidth * scaleX;
             const actualHeight = highlightHeight * scaleY;
-            
+
             // Ensure we're within canvas bounds
-            if (actualLeft >= 0 && actualTop >= 0 && 
-                actualLeft + actualWidth <= canvas.width && 
+            if (actualLeft >= 0 && actualTop >= 0 &&
+                actualLeft + actualWidth <= canvas.width &&
                 actualTop + actualHeight <= canvas.height) {
-                
+
                 // Draw highlight fill
                 finalCtx.fillStyle = '#ffff001a';
                 finalCtx.fillRect(actualLeft, actualTop, actualWidth, actualHeight);
-                
+
                 // Draw highlight border
                 finalCtx.strokeStyle = 'red';
                 finalCtx.setLineDash([5, 3]);
@@ -219,7 +219,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Handle mouse down for crop or highlight initiation
     canvas.addEventListener('mousedown', (e) => {
         if (!canvas.width) return; // Don't allow editing if no image loaded
-        
+
         const rect = canvas.getBoundingClientRect();
         const scaleX = canvas.width / rect.width;
         const scaleY = canvas.height / rect.height;
@@ -272,7 +272,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (isHighlighting && currentHighlight) {
             const width = clientX - (parseFloat(currentHighlight.style.left || 0));
             const height = clientY - (parseFloat(currentHighlight.style.top || 0));
-            
+
             currentHighlight.style.width = `${Math.abs(width)}px`;
             currentHighlight.style.height = `${Math.abs(height)}px`;
             currentHighlight.style.left = `${width < 0 ? clientX : clientX - width}px`;
@@ -316,7 +316,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const highlights = Array.from(document.querySelectorAll('.highlight')).map(h => {
                     const rect = canvas.getBoundingClientRect();
                     const container = canvas.parentElement.getBoundingClientRect();
-                    
+
                     return {
                         element: h,
                         left: parseFloat(h.style.left) - (container.left - rect.left),
@@ -344,29 +344,29 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // Redraw highlights that are within the cropped area
                 highlights.forEach(h => {
                     // Check if highlight is within crop area
-                    if (h.left >= cropX && h.top >= cropY && 
-                        h.left + h.width <= cropX + cropWidth && 
+                    if (h.left >= cropX && h.top >= cropY &&
+                        h.left + h.width <= cropX + cropWidth &&
                         h.top + h.height <= cropY + cropHeight) {
-                        
+
                         // Create new highlight with adjusted coordinates
                         const newHighlight = document.createElement('div');
                         newHighlight.className = 'highlight';
                         newHighlight.style.position = 'absolute';
-                        
+
                         // Adjust coordinates relative to new canvas
                         const rect = canvas.getBoundingClientRect();
                         const container = canvas.parentElement.getBoundingClientRect();
-                        
+
                         const newLeft = (h.left - cropX) * (rect.width / canvas.width);
                         const newTop = (h.top - cropY) * (rect.height / canvas.height);
                         const newWidth = h.width * (rect.width / canvas.width);
                         const newHeight = h.height * (rect.height / canvas.height);
-                        
+
                         newHighlight.style.left = `${newLeft + (rect.left - container.left)}px`;
                         newHighlight.style.top = `${newTop + (rect.top - container.top)}px`;
                         newHighlight.style.width = `${newWidth}px`;
                         newHighlight.style.height = `${newHeight}px`;
-                        
+
                         canvas.parentNode.appendChild(newHighlight);
                     }
                 });
@@ -383,10 +383,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         isHighlighting = false;
         startX = startY = null;
         currentHighlight = null;
-        
+
         // Reset button states
         cropBtn.classList.remove('active');
         highlightBtn.classList.remove('active');
         canvas.style.cursor = 'default';
+    });
+
+    document.getElementById("explore-btn").addEventListener("click", () => {
+        chrome.tabs.create({ url: "https://codersship.com/" });
     });
 });
